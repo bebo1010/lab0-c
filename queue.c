@@ -119,9 +119,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     element_t *element = container_of(current, element_t, list);
     list_del(current);
 
-    strncpy(
-        sp, element->value,
-        bufsize > strlen(element->value) ? strlen(element->value) : bufsize);
+    strncpy(sp, element->value, bufsize);
     return element;
 }
 
@@ -137,9 +135,7 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     element_t *element = container_of(current, element_t, list);
     list_del(current);
 
-    strncpy(
-        sp, element->value,
-        bufsize > strlen(element->value) ? strlen(element->value) : bufsize);
+    strncpy(sp, element->value, bufsize);
     return element;
 }
 
