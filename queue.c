@@ -57,13 +57,13 @@ bool q_insert_head(struct list_head *head, char *s)
     if (new_node == NULL)
         return false;
 
-    new_node->value = malloc(strlen(s) * sizeof(char));
+    new_node->value = malloc(strlen(s) + 1);
     if (new_node->value == NULL) {
         free(new_node);
         return false;
     }
 
-    strncpy(new_node->value, s, strlen(s));
+    memcpy(new_node->value, s, (strlen(s) + 1));
 
     list_add(&new_node->list, head);
 
@@ -84,13 +84,13 @@ bool q_insert_tail(struct list_head *head, char *s)
     element_t *new_node = malloc(sizeof(element_t));
     if (new_node == NULL)
         return false;
-    new_node->value = malloc(strlen(s) * sizeof(char));
+    new_node->value = malloc(strlen(s) + 1);
     if (new_node->value == NULL) {
         free(new_node);
         return false;
     }
 
-    strncpy(new_node->value, s, strlen(s));
+    memcpy(new_node->value, s, (strlen(s) + 1));
 
     list_add_tail(&new_node->list, head);
 
@@ -161,7 +161,7 @@ void q_release_element(element_t *e)
  */
 int q_size(struct list_head *head)
 {
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return 0;
     else {
         struct list_head *current = head->next;
@@ -185,7 +185,7 @@ int q_size(struct list_head *head)
 bool q_delete_mid(struct list_head *head)
 {
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return false;
     else {
         unsigned int mid_point = q_size(head) / 2;
@@ -259,7 +259,7 @@ void q_swap(struct list_head *head)
         next->next = current;
         current->prev = next;
 
-        current = next->next;
+        current = current->next;
         next = current->next;
     }
 }
@@ -273,7 +273,7 @@ void q_swap(struct list_head *head)
  */
 void q_reverse(struct list_head *head)
 {
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return;
 
     struct list_head *current = head;
