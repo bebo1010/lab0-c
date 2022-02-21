@@ -28,18 +28,16 @@ struct list_head *q_new()
 /* Free all storage used by queue */
 void q_free(struct list_head *head)
 {
-    if (list_empty(head))  // no nodes in this list
+    if (head == NULL)  // no nodes in this list
         return;
     else {
-        head->prev->next = NULL;
-        struct list_head *current = head;
-        while (current != NULL) {
-            struct list_head *temp = current->next;
+        struct list_head *current = head->next;
+        while (current != head) {
             element_t *element = container_of(current, element_t, list);
-            free(element->value);
-            free(element);
-            current = temp;
+            current = current->next;
+            q_release_element(element);
         }
+        free(head);
     }
 }
 
@@ -54,20 +52,18 @@ bool q_insert_head(struct list_head *head, char *s)
 {
     if (head == NULL)
         return false;
+
     element_t *new_node = malloc(sizeof(element_t));
     if (new_node == NULL)
         return false;
-    new_node->value = malloc(sizeof(strlen(s)));
+
+    new_node->value = malloc(strlen(s) * sizeof(char));
     if (new_node->value == NULL) {
         free(new_node);
         return false;
     }
 
-    int i = 0;
-    for (; s[i] != '\0'; i++) {
-        new_node->value[i] = s[i];
-    }
-    new_node->value[i] = '\0';
+    strncpy(new_node->value, s, strlen(s));
 
     list_add(&new_node->list, head);
 
@@ -88,17 +84,13 @@ bool q_insert_tail(struct list_head *head, char *s)
     element_t *new_node = malloc(sizeof(element_t));
     if (new_node == NULL)
         return false;
-    new_node->value = malloc(sizeof(strlen(s)));
+    new_node->value = malloc(strlen(s) * sizeof(char));
     if (new_node->value == NULL) {
         free(new_node);
         return false;
     }
 
-    int i = 0;
-    for (; s[i] != '\0'; i++) {
-        new_node->value[i] = s[i];
-    }
-    new_node->value[i] = '\0';
+    strncpy(new_node->value, s, strlen(s));
 
     list_add_tail(&new_node->list, head);
 
@@ -127,7 +119,9 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     element_t *element = container_of(current, element_t, list);
     list_del(current);
 
-    strncpy(sp, element->value, bufsize);
+    strncpy(
+        sp, element->value,
+        bufsize > strlen(element->value) ? strlen(element->value) : bufsize);
     return element;
 }
 
@@ -143,7 +137,9 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     element_t *element = container_of(current, element_t, list);
     list_del(current);
 
-    strncpy(sp, element->value, bufsize);
+    strncpy(
+        sp, element->value,
+        bufsize > strlen(element->value) ? strlen(element->value) : bufsize);
     return element;
 }
 
@@ -197,8 +193,7 @@ bool q_delete_mid(struct list_head *head)
 
         element_t *element = container_of(current, element_t, list);
         list_del(current);
-        free(element->value);
-        free(element);
+        q_release_element(element);
         return true;
     }
 }
@@ -234,8 +229,7 @@ bool q_delete_dup(struct list_head *head)
                 if (strlen(element->value) == strlen(compare_element->value) &&
                     strcmp(element->value, compare_element->value)) {
                     list_del(&compare_element->list);
-                    free(compare_element->value);
-                    free(compare_element);
+                    q_release_element(compare_element);
                 }
                 compare_current = compare_current->next;
             }
