@@ -189,8 +189,7 @@ bool q_delete_mid(struct list_head *head)
         return false;
     else {
         unsigned int list_length = q_size(head);
-        unsigned int mid_point =
-            list_length % 2 != 0 ? (list_length / 2) : (list_length / 2 - 1);
+        unsigned int mid_point = (list_length - 1) / 2;
         struct list_head *current = head->next;
         for (int i = 0; i < mid_point; i++)
             current = current->next;
