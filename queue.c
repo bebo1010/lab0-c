@@ -300,28 +300,21 @@ void q_sort(struct list_head *head)
     if (head == NULL || head->next == head)
         return;
 
-    unsigned int list_length = q_size(head);
     struct list_head *current = head->next;
 
-    for (int i = 0; i < list_length; i++) {
+    while (current != head) {
         element_t *element = container_of(current, element_t, list);
         struct list_head *compare_target = current->next;
-        for (int j = i + 1; j < list_length; j++) {
+        while (compare_target != head) {
             element_t *compare_element =
                 container_of(compare_target, element_t, list);
             if (strcmp(element->value, compare_element->value) > 0) {
-                compare_target->next->prev = current;
-                current->prev->next = compare_target;
-
-                compare_target->prev = current->prev;
-                current->next = compare_target->next;
-
-                compare_target->next = current;
-                current->prev = compare_target;
-
-                current = compare_target->next;
-                compare_target = current->next;
+                char *temp = element->value;
+                element->value = compare_element->value;
+                compare_element->value = temp;
             }
+            compare_target = compare_target->next;
         }
+        current = current->next;
     }
 }
