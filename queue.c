@@ -221,22 +221,19 @@ bool q_delete_dup(struct list_head *head)
         while (current != head) {
             element_t *element = container_of(current, element_t, list);
             struct list_head *compare_current = current->next;
-            while (1) {
-                if (compare_current == head)
-                    break;
+            while (compare_current != head) {
                 element_t *compare_element =
                     container_of(compare_current, element_t, list);
 
-                if (element->value[0] != compare_element->value[0])
-                    break;
+                compare_current = compare_current->next;
 
                 if (strlen(element->value) == strlen(compare_element->value) &&
-                    strcmp(element->value, compare_element->value)) {
+                    strcmp(element->value, compare_element->value) == 0) {
                     list_del(&compare_element->list);
                     q_release_element(compare_element);
                 }
-                compare_current = compare_current->next;
             }
+            current = current->next;
         }
         return true;
     }
