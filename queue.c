@@ -287,30 +287,82 @@ void q_reverse(struct list_head *head)
 }
 
 /*
+ * Core of merge sort
+ */
+void merge_sort(struct list_head **head)
+{
+    // base case, length is zero or one
+    if (*head == NULL || (*head)->next == NULL)
+        return;
+
+    // perform split here
+    // fast should reach end of list, while slow is at halve of list
+    struct list_head *fast = (*head)->next;
+    struct list_head *slow = *head;
+
+    while (fast != NULL) {
+        fast = fast->next;
+        if (fast != NULL) {
+            fast = fast->next;
+            slow = slow->next;
+        }
+    }
+
+    struct list_head *left = *head;
+    struct list_head *right = slow->next;
+    slow->next = NULL;
+    merge_sort(&left);
+    merge_sort(&right);
+
+    // merge list back
+    struct list_head dummy;
+    struct list_head *current = &dummy;
+    while (1) {
+        // base case, left or right list has no node
+        if (left == NULL) {
+            current->next = right;
+            break;
+        }
+        if (right == NULL) {
+            current->next = left;
+            break;
+        }
+
+        element_t *left_element = container_of(left, element_t, list);
+        element_t *right_element = container_of(right, element_t, list);
+        if (strcmp(left_element->value, right_element->value) > 0) {
+            current->next = right;
+            right = right->next;
+        } else {
+            current->next = left;
+            left = left->next;
+        }
+        current = current->next;
+    }
+    *head = dummy.next;
+}
+/*
  * Sort elements of queue in ascending order
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
 void q_sort(struct list_head *head)
 {
-    if (head == NULL || head->next == head)
+    // Use merge sort
+    if (head == NULL || list_empty(head) || list_is_singular(head))
         return;
 
-    struct list_head *current = head->next;
+    // make this list a singly-linked list
+    head->prev->next = NULL;
+    merge_sort(&(head->next));
 
-    while (current != head) {
-        element_t *element = container_of(current, element_t, list);
-        struct list_head *compare_target = current->next;
-        while (compare_target != head) {
-            element_t *compare_element =
-                container_of(compare_target, element_t, list);
-            if (strcmp(element->value, compare_element->value) > 0) {
-                char *temp = element->value;
-                element->value = compare_element->value;
-                compare_element->value = temp;
-            }
-            compare_target = compare_target->next;
-        }
+    struct list_head *prev = head;
+    struct list_head *current = head->next;
+    while (current != NULL) {
+        current->prev = prev;
+        prev = current;
         current = current->next;
     }
+    prev->next = head;
+    head->prev = prev;
 }
