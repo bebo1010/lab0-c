@@ -224,6 +224,9 @@ bool q_delete_dup(struct list_head *head)
                 element_t *compare_element =
                     container_of(compare_current, element_t, list);
 
+                if (element->value[0] != compare_element->value[0])
+                    break;
+
                 compare_current = compare_current->next;
 
                 if (strlen(element->value) == strlen(compare_element->value) &&
