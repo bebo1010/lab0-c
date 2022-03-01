@@ -762,6 +762,55 @@ static bool do_show(int argc, char *argv[])
     return show_queue(0);
 }
 
+void q_shuffle(struct list_head *head)
+{
+    if (head == NULL || list_empty(head) || list_is_singular(head))
+        return;
+
+    srand(time(NULL));
+    unsigned int shuffle_max = q_size(head);
+    struct list_head dummy;
+    dummy.next = &dummy;
+    struct list_head *dummy_head = &dummy;
+    for (; shuffle_max > 0; shuffle_max--) {
+        struct list_head *current = head->next;
+        int rand_val = rand() % shuffle_max;
+        for (; rand_val > 0; rand_val--)
+            current = current->next;
+
+        dummy_head->next = current;
+        dummy_head = dummy_head->next;
+    }
+    head = dummy.next;
+
+    struct list_head *prev = head;
+    struct list_head *current = head->next;
+    while (current != head) {
+        current->prev = prev;
+        prev = current;
+        current = current->next;
+    }
+    prev->next = head;
+    head->prev = prev;
+    return;
+}
+
+// TODO: implement shuffle
+static bool do_shuffle()
+{
+    if (!l_meta.l)
+        report(3, "Warning: Calling shuffle on null queue");
+    error_check();
+
+    int cnt = q_size(l_meta.l);
+    if (cnt < 2)
+        report(3, "Warning: Calling shuffle on single node");
+    error_check();
+
+    q_shuffle(l_meta.l);
+    show_queue(3);
+    return !error_check();
+}
 static void console_init()
 {
     ADD_COMMAND(new, "                | Create new queue");
@@ -795,6 +844,7 @@ static void console_init()
         dedup, "                | Delete all nodes that have duplicate string");
     ADD_COMMAND(swap,
                 "                | Swap every two adjacent nodes in queue");
+    ADD_COMMAND(shuffle, "                | Do Fisher-Yates shuffle");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
